@@ -72,5 +72,6 @@ playwright install chromium   # 브라우저 다운로드 (약 150MB, 최초 1�
 python poll_playwright.py     # 가격 수집 1회
 ```
 
+- 설치된 실제 크롬을 화면 있는 모드로 띄워 접속하므로, 실행 시 크롬 창이 잠깐 열립니다.
 - `poll.py`와 기록 파일(`prices.jsonl`, `alert.json`)을 공유하므로 섞어 써도 됩니다.
 - 15분마다 자동 실행하려면 윈도우 작업 스케줄러 / macOS launchd에 등록하세요.

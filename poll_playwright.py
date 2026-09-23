@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 펩시 제로 라임 가격 폴러 (Playwright 버전)
-- headless Chromium(진짜 브라우저)으로 상품 페이지를 열어 HTML 수집
-- urllib 버전(poll.py)이 쿠팡의 TLS 지문 탐지에 막힐 때 쓰는 대안
+- 실제 설치된 Chrome을 화면 있는 모드로 띄워 상품 페이지를 열기 때문에
+  쿠팡 봇 탐지에 걸릴 확률이 낮음 (urllib 버전이 TLS 지문으로 막힐 때 쓰는 대안)
 - 설치: pip install playwright && playwright install chromium
 - 실행: python poll_playwright.py
 - 결과: prices.jsonl 에 1줄 추가, 특가 감지 시 alert.json 갱신
@@ -15,7 +15,26 @@ from datetime import datetime, timezone
 
 from playwright.sync_api import sync_playwright
 
-# ---------------- 설정 ----------------
+# ---------------- 브라우저 실행 설정 ----------------
+# 쿠팡 봇 탐지를 피하기 위한 설정.
+# - headless 모드는 자동화 흔적이 남아 차단되기 쉬움
+# - 실제 설치된 Chrome을 화면 있는 모드로 띄우면 일반 사용자 접속과 구분이 어려움
+USE_REAL_CHROME = True  # 설치된 Google Chrome 사용 (없으면 기본 Chromium으로 자동 전환)
+HEADLESS = False        # False = 화면 있는 모드 (탐지 회피에 유리, 실행 시 창이 잠깐 뜸)
+
+
+def launch_browser(pw):
+    """봇 탐지를 피하기 위한 브라우저 실행."""
+    args = ["--disable-blink-features=AutomationControlled"]
+    if USE_REAL_CHROME:
+        try:
+            return pw.chromium.launch(channel="chrome", headless=HEADLESS, args=args)
+        except Exception as e:  # noqa: BLE001
+            print(f"실제 크롬 실행 실패, 기본 Chromium으로 전환: {e}")
+    return pw.chromium.launch(headless=HEADLESS, args=args)
+
+
+# ---------------- 상품 설정 ----------------
 PRODUCTS = [
     {
         "id": "pepsi-zero-lime-1.5lx12",
@@ -177,9 +196,9 @@ def check_product(page, p):
 
 def main():
     alerts = []
-    print("브라우저 시작 중...")
+    print("브라우저 시작 중... (크롬 창이 잠깐 열립니다)")
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
+        browser = launch_browser(pw)
         page = browser.new_page(user_agent=UA, locale="ko-KR")
         try:
             for p in PRODUCTS:
