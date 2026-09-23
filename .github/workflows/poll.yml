@@ -1,0 +1,41 @@
+name: pepsi-price-poll
+
+# 15분 간격 실행. 매시 07/22/37/52분 (UTC) - 매시 정각의 깃허브 혼잡 시간대를 피함.
+# 한국 시간대와 무관하게 15분 간격으로 돕니다.
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:  # Actions 탭에서 수동 실행 버튼도 제공
+
+permissions:
+  contents: write  # 가격 기록 커밋용
+
+concurrency:
+  group: pepsi-poll
+  cancel-in-progress: false  # 실행이 겹쳐도 중간에 취소하지 않음
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 가격 수집
+        run: python3 poll.py
+
+      - name: 가격 기록 커밋
+        run: |
+          git config user.name "pepsi-poller"
+          git config user.email "pepsi-poller@users.noreply.github.com"
+          git add prices.jsonl alert.json
+          git diff --cached --quiet && echo "변경 없음" || \
+            (git commit -m "price poll $(date -u +%Y-%m-%dT%H:%MZ)" && git push)
+
+      - name: 특가 알림 발송 (선택)
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python3 notify.py
