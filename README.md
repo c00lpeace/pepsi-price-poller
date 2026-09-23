@@ -57,6 +57,20 @@
 ## 로컬 테스트
 
 ```bash
-python3 poll.py          # 가격 수집 1회
+python3 poll.py          # 가격 수집 1회 (urllib 버전)
 NTFY_TOPIC=내토픽 python3 notify.py   # 알림 테스트
 ```
+
+## 데스크탑에서 실행 (Playwright 버전, 권장)
+
+쿠팡이 일반 HTTP 요청(urllib)을 TLS 지문으로 차단할 경우, 진짜 브라우저로
+접속하는 Playwright 버전을 사용하세요.
+
+```bash
+pip install playwright
+playwright install chromium   # 브라우저 다운로드 (약 150MB, 최초 1회)
+python poll_playwright.py     # 가격 수집 1회
+```
+
+- `poll.py`와 기록 파일(`prices.jsonl`, `alert.json`)을 공유하므로 섞어 써도 됩니다.
+- 15분마다 자동 실행하려면 윈도우 작업 스케줄러 / macOS launchd에 등록하세요.
