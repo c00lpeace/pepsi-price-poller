@@ -3,9 +3,11 @@ name: pepsi-price-poll
 # 15분 간격 실행. 매시 07/22/37/52분 (UTC) - 매시 정각의 깃허브 혼잡 시간대를 피함.
 # 한국 시간대와 무관하게 15분 간격으로 돕니다.
 on:
-  schedule:
-    - cron: '7,22,37,52 * * * *'
-  workflow_dispatch:  # Actions 탭에서 수동 실행 버튼도 제공
+  # 2026-09-23 스케줄 중단: 쿠팡이 GitHub Actions 러너 IP를 403으로 차단하여
+  # 자동 실행 시 blocked 기록만 쌓임. 수동 실행(workflow_dispatch)은 유지.
+  # schedule:
+  #   - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:  # Actions 탭에서 수동 실행 버튼으로만 동작
 
 permissions:
   contents: write  # 가격 기록 커밋용
